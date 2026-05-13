@@ -39,7 +39,8 @@ const getPostById = async (req, res, next) => {
 
 const createPost = async (req, res, next) => {
   try {
-    const { title, content } = req.body;
+    const title = req.body.title?.trim();
+    const content = req.body.content?.trim();
 
     if (!title || !content) {
       return res.status(400).json({ message: "Title and content are required" });
@@ -65,7 +66,7 @@ const addComment = async (req, res, next) => {
       return res.status(400).json({ message: "Invalid post ID" });
     }
 
-    const { content } = req.body;
+    const content = req.body.content?.trim();
 
     if (!content) {
       return res.status(400).json({ message: "Comment content is required" });

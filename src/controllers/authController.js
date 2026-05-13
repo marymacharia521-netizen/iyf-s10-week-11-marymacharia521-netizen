@@ -2,6 +2,10 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
 const generateToken = (id) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("Missing JWT_SECRET in environment variables");
+  }
+
   return jwt.sign(
     { id },
     process.env.JWT_SECRET,
@@ -13,7 +17,15 @@ const generateToken = (id) => {
 
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const username = req.body.username?.trim();
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password?.trim();
+
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        error: "Username, email, and password are required"
+      });
+    }
 
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
@@ -50,7 +62,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = req.body.email?.trim().toLowerCase();
+    const password = req.body.password?.trim();
+
+    if (!email || !password) {
+      return res.status(400).json({
+        error: "Email and password are required"
+      });
+    }
 
     const user = await User.findOne({ email }).select("+password");
 
@@ -86,7 +105,12 @@ const login = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-  res.json(req.user);
+  res.json({
+    id: req.user._id,
+    username: req.user.username,
+    email: req.user.email,
+    role: req.user.role
+  });
 };
 
 module.exports = {
